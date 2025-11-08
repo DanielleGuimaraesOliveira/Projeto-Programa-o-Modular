@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "nome": "Danielle",
+    "descricao": "Amante de RPGs",
+    "avatar": "avatar1.png",
+    "favoritos": []
+  },
+  {
+    "id": 2,
+    "nome": "Luis",
+    "descricao": "Jogador retrô",
+    "avatar": "avatar2.png",
+    "favoritos": []
+  },
+  {
+    "id": 3,
+    "nome": "Ma",
+    "descricao": "s",
+    "avatar": "s",
+    "favoritos": []
+  }
+]

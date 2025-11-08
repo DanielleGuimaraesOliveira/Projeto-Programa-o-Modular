@@ -1,0 +1,7 @@
+# utils/codigos.py
+
+OK = 0
+DADOS_INVALIDOS = 1
+ERRO_DELETAR = 2
+CONFLITO = 3
+NAO_ENCONTRADO = 4
