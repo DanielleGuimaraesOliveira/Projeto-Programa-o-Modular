@@ -1,47 +1,24 @@
 [
   {
     "id": 1,
-    "nome": "Danielle",
-    "descricao": "Amante de RPGs",
-    "avatar": "avatar1.png",
+    "nome": "r1",
+    "descricao": "",
+    "avatar": "",
     "favoritos": [],
     "biblioteca": [
       {
-        "jogo_id": 8,
-        "nota": 2.0,
-        "opiniao": "legal"
-      },
-      {
         "jogo_id": 2,
-        "nota": 6.0,
-        "opiniao": "joia"
-      },
-      {
-        "jogo_id": 4,
-        "nota": 2.0,
-        "opiniao": "joia"
+        "nota": 10.0,
+        "opiniao": "ótimo"
       }
     ]
   },
   {
     "id": 2,
-    "nome": "Luis",
-    "descricao": "Jogador retrô",
-    "avatar": "avatar2.png",
-    "favoritos": []
-  },
-  {
-    "id": 3,
-    "nome": "teste",
-    "descricao": "teste",
-    "avatar": "teste",
+    "nome": "r2",
+    "descricao": "",
+    "avatar": "",
     "favoritos": [],
-    "biblioteca": [
-      {
-        "jogo_id": 8,
-        "nota": 10.0,
-        "opiniao": "paia"
-      }
-    ]
+    "biblioteca": []
   }
 ]
