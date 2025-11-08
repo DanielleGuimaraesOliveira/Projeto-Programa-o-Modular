@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "titulo": "The Witcher 3: Wild Hunt",
+    "descricao": "RPG de mundo aberto com narrativa profunda, missões ricas e decisões morais.",
+    "genero": "RPG",
+    "nota_geral": 0.0
+  },
+  {
+    "id": 2,
+    "titulo": "God of War (2018)",
+    "descricao": "Aventura de ação com foco na história e na relação entre Kratos e Atreus.",
+    "genero": "Ação",
+    "nota_geral": 0.0
+  },
+  {
+    "id": 3,
+    "titulo": "Red Dead Redemption 2",
+    "descricao": "Epic western em mundo aberto com narrativa cinematográfica e personagens complexos.",
+    "genero": "Ação/Aventura",
+    "nota_geral": 0.0
+  },
+  {
+    "id": 4,
+    "titulo": "The Legend of Zelda: Breath of the Wild",
+    "descricao": "Aventura em mundo aberto com liberdade para explorar e resolver puzzles de formas criativas.",
+    "genero": "Aventura",
+    "nota_geral": 2.0
+  },
+  {
+    "id": 5,
+    "titulo": "Dark Souls",
+    "descricao": "RPG de ação conhecido pela dificuldade, combate punitivo e design de níveis intrincado.",
+    "genero": "RPG/Ação",
+    "nota_geral": 0.0
+  },
+  {
+    "id": 6,
+    "titulo": "Super Mario Odyssey",
+    "descricao": "Plataforma criativa com mundos variados e muita exploração e colecionáveis.",
+    "genero": "Plataforma",
+    "nota_geral": 0.0
+  },
+  {
+    "id": 7,
+    "titulo": "The Last of Us Part II",
+    "descricao": "Aventura narrativa intensa sobre perdas, vingança e consequências morais.",
+    "genero": "Ação/Aventura",
+    "nota_geral": 0.0
+  },
+  {
+    "id": 8,
+    "titulo": "Portal 2",
+    "descricao": "Puzzle em primeira pessoa com mecânica de portais e humor inteligente.",
+    "genero": "Puzzle",
+    "nota_geral": 0.0
+  },
+  {
+    "id": 9,
+    "titulo": "Minecraft",
+    "descricao": "Sandbox de construção, criação e sobrevivência com possibilidades quase infinitas.",
+    "genero": "Sandbox",
+    "nota_geral": 0.0
+  },
+  {
+    "id": 10,
+    "titulo": "Grand Theft Auto V",
+    "descricao": "Mundo aberto com múltiplos protagonistas, missões variadas e modo online extensivo.",
+    "genero": "Ação/Aventura",
+    "nota_geral": 0.0
+  }
+]

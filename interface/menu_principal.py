@@ -1,4 +1,5 @@
 # interface/menu_principal.py
+from interface import menu_jogos
 
 def menu_principal(perfil_ativo):
     while True:
@@ -14,7 +15,10 @@ def menu_principal(perfil_ativo):
 
         opcao = input("Escolha uma opção: ")
 
-        if opcao == "0":
+        if opcao == "1":
+            # passa o perfil ativo para o menu de jogos (necessário para avaliar)
+            menu_jogos.exibir_menu(perfil_ativo)
+        elif opcao == "0":
             print("👋 Saindo... até logo!")
             break
         else:

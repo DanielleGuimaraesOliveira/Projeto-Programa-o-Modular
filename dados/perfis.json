@@ -4,7 +4,24 @@
     "nome": "Danielle",
     "descricao": "Amante de RPGs",
     "avatar": "avatar1.png",
-    "favoritos": []
+    "favoritos": [],
+    "biblioteca": [
+      {
+        "jogo_id": 8,
+        "nota": 2.0,
+        "opiniao": "legal"
+      },
+      {
+        "jogo_id": 2,
+        "nota": 6.0,
+        "opiniao": "joia"
+      },
+      {
+        "jogo_id": 4,
+        "nota": 2.0,
+        "opiniao": "joia"
+      }
+    ]
   },
   {
     "id": 2,
@@ -15,9 +32,16 @@
   },
   {
     "id": 3,
-    "nome": "Ma",
-    "descricao": "s",
-    "avatar": "s",
-    "favoritos": []
+    "nome": "teste",
+    "descricao": "teste",
+    "avatar": "teste",
+    "favoritos": [],
+    "biblioteca": [
+      {
+        "jogo_id": 8,
+        "nota": 10.0,
+        "opiniao": "paia"
+      }
+    ]
   }
 ]
