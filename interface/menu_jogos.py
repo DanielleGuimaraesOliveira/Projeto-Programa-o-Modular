@@ -33,6 +33,57 @@ def _coletar_media_e_opinioes(id_jogo, perfil_atual=None):
     media = round(total / count, 2) if count > 0 else 0.0
     return media, opinioes
 
+def _normalize(s: str) -> str:
+    return ' '.join(''.join(ch for ch in s.lower() if ch.isalnum() or ch.isspace()).split())
+
+def _is_subsequence(query: str, text: str) -> bool:
+    it = iter(text)
+    return all(ch in it for ch in query)
+
+def _smart_search_matches(lista, termo):
+    """
+    Retorna lista de jogos ordenada por relevância usando heurísticas:
+    - match exato/substring (alto)
+    - match nas iniciais das palavras (alto)
+    - prefixo de alguma palavra (médio)
+    - subsequence das letras (baixo) -> ajuda com 'gd' -> 'god'
+    """
+    q = _normalize(termo)
+    if not q:
+        return []
+
+    results = []
+    for j in lista:
+        title = j.get("titulo", "")
+        norm = _normalize(title)
+
+        score = 0
+        # substring exata
+        if q in norm:
+            score += 100
+        # iniciais das palavras
+        initials = ''.join(w[0] for w in norm.split() if w)
+        if q in initials:
+            score += 90
+        # prefixo de alguma palavra
+        for w in norm.split():
+            if w.startswith(q):
+                score += 70
+                break
+        # subsequence (letras em ordem, não necessariamente contíguas)
+        if _is_subsequence(q.replace(' ', ''), norm.replace(' ', '')):
+            score += 50
+        # pequenos bônus para termos curtos que aparecem como prefixo no título
+        if len(q) <= 2 and norm.startswith(q):
+            score += 20
+
+        if score > 0:
+            results.append((score, j))
+
+    # ordenar por score desc, depois título asc
+    results.sort(key=lambda x: (-x[0], x[1].get("titulo", "")))
+    return [r[1] for r in results]
+
 def exibir_menu(perfil):
     while True:
         print("\n=== CATÁLOGO DE JOGOS ===")
@@ -86,13 +137,16 @@ def buscar_jogo_por_nome(perfil):
     if codigo != OK:
         print("❌ Erro ao acessar catálogo.")
         return
-    matches = [j for j in lista if termo.lower() in j.get("titulo","").lower()]
+
+    matches = _smart_search_matches(lista, termo)
     if not matches:
         print("🔎 Nenhum jogo encontrado com esse termo.")
         return
+
     print(f"\n🔎 Jogos encontrados ({len(matches)}):")
     for i, j in enumerate(matches, start=1):
         print(f"  {i}. {j['titulo']} ({j.get('genero','-')})")
+
     try:
         sub = input("Escolha o número do resultado para ver mais detalhes ou ENTER para voltar: ").strip()
         if not sub:
@@ -106,17 +160,14 @@ def buscar_jogo_por_nome(perfil):
         return
 
     jogo = matches[sub_idx - 1]
-    # mostra detalhes do jogo
     titulo = jogo.get('titulo','(sem título)')
     genero = jogo.get('genero','-')
     descricao = jogo.get('descricao','(sem descrição)')
-    # calcula média e coleta opiniões de todos os perfis
     media, opinioes = _coletar_media_e_opinioes(jogo.get("id"), perfil)
     print(f"\n🎯 {titulo} - {genero}")
     print(f"Descrição: {descricao}")
     print(f"Nota geral: {media}")
 
-    # mostrar opiniões/outros perfis (já obtidas em opinioes)
     outras = [o for o in opinioes if not (perfil and o["perfil"] == perfil.get("nome"))]
     if outras:
         print("\n🗣️ Opiniões de outros usuários:")
@@ -125,7 +176,6 @@ def buscar_jogo_por_nome(perfil):
             print(f"  - {o['perfil']}: Nota {o['nota']} | {opin}")
     else:
         print("\n🗣️ Nenhuma opinião de outros usuários para este jogo ainda.")
-    # mostrar também a opinião do próprio usuário (se houver)
     if perfil:
         entry = next((e for e in perfil.get("biblioteca", []) if e.get("jogo_id") == jogo.get("id")), None)
         if entry:
@@ -250,14 +300,20 @@ def mostrar_biblioteca(perfil):
                 print("❌ Nota inválida (use 0-10).")
             else:
                 print("❌ Erro ao atualizar avaliação.")
-            return
         elif acao == "2":
-            codigo, _ = perfil_controler.Remover_Avaliacao(perfil['id'], id_jogo)
-            if codigo == OK:
-                print("🗑️ Avaliação removida da biblioteca.")
+            confirm = ""
+            while confirm not in ["s", "n"]:
+                confirm = input("Tem certeza que deseja remover este jogo da sua biblioteca? (s/n): ").strip().lower()
+            if confirm == "s":
+                codigo, _ = perfil_controler.Remover_Avaliacao(perfil['id'], id_jogo)
+                if codigo == OK:
+                    print("✅ Jogo removido da biblioteca.")
+                elif codigo == NAO_ENCONTRADO:
+                    print("❌ Jogo não encontrado na biblioteca.")
+                else:
+                    print("❌ Erro ao remover jogo da biblioteca.")
             else:
-                print("❌ Não foi possível remover a avaliação.")
-            return
+                print("❌ Ação cancelada.")
         elif acao == "0":
             return
         else:
