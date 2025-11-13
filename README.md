@@ -49,5 +49,5 @@ Como executar
 1. Abra o workspace no container/development environment (Ubuntu 24.04).
 2. Execute no terminal:
    ````bash
-   python3 /workspaces/Projeto-Programa-o-Modular/main.py
+   python3 main.py
 ````
