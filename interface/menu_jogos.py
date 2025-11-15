@@ -8,30 +8,30 @@ def _coletar_media_e_opinioes(id_jogo, perfil_atual=None):
     Retorna (media, lista_opinioes) calculadas a partir de todos os perfis.
     lista_opinioes: [{'perfil': nome, 'nota': x, 'opiniao': s}, ...]
     """
-    codigo_p, todos_perfis = perfil_controler.Listar_Perfil()
-    if codigo_p != OK:
+    status, todos_perfis = perfil_controler.Listar_Perfil()
+    if status != OK:
         return 0.0, []
 
-    total = 0.0
-    count = 0
-    opinioes = []
-    for p in todos_perfis:
-        for e in p.get("biblioteca", []):
-            if e.get("jogo_id") == id_jogo:
+    soma_notas = 0.0
+    quantidade_avaliacoes = 0
+    lista_opinioes = []
+    for perfil in todos_perfis:
+        for entrada in perfil.get("biblioteca", []):
+            if entrada.get("jogo_id") == id_jogo:
                 try:
-                    nota = float(e.get("nota", 0))
+                    nota_valor = float(entrada.get("nota", 0))
                 except Exception:
                     continue
-                total += nota
-                count += 1
+                soma_notas += nota_valor
+                quantidade_avaliacoes += 1
                 # incluir opinião (pode incluir a do próprio usuário também)
-                opinioes.append({
-                    "perfil": p.get("nome", "(sem nome)"),
-                    "nota": nota,
-                    "opiniao": e.get("opiniao", "")
+                lista_opinioes.append({
+                    "perfil": perfil.get("nome", "(sem nome)"),
+                    "nota": nota_valor,
+                    "opiniao": entrada.get("opiniao", "")
                 })
-    media = round(total / count, 2) if count > 0 else 0.0
-    return media, opinioes
+    media = round(soma_notas / quantidade_avaliacoes, 2) if quantidade_avaliacoes > 0 else 0.0
+    return media, lista_opinioes
 
 def _normalize(s: str) -> str:
     return ' '.join(''.join(ch for ch in s.lower() if ch.isalnum() or ch.isspace()).split())
@@ -40,7 +40,7 @@ def _is_subsequence(query: str, text: str) -> bool:
     it = iter(text)
     return all(ch in it for ch in query)
 
-def _smart_search_matches(lista, termo):
+def _smart_search_matches(lista_jogos, termo):
     """
     Retorna lista de jogos ordenada por relevância usando heurísticas:
     - match exato/substring (alto)
@@ -53,7 +53,7 @@ def _smart_search_matches(lista, termo):
         return []
 
     results = []
-    for j in lista:
+    for j in lista_jogos:
         title = j.get("titulo", "")
         norm = _normalize(title)
 

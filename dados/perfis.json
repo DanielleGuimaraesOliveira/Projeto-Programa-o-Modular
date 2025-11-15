@@ -1,23 +1,9 @@
 [
   {
-    "id": 1,
-    "nome": "r1",
-    "descricao": "",
-    "avatar": "",
-    "favoritos": [],
-    "biblioteca": [
-      {
-        "jogo_id": 2,
-        "nota": 10.0,
-        "opiniao": "ótimo"
-      }
-    ]
-  },
-  {
-    "id": 2,
-    "nome": "r2",
-    "descricao": "",
-    "avatar": "",
+    "id": 3,
+    "nome": "Danielle",
+    "descricao": "opcional",
+    "avatar": "danimaraes",
     "favoritos": [],
     "biblioteca": []
   }
