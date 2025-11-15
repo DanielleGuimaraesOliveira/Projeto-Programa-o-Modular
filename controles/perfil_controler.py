@@ -14,12 +14,12 @@ from utils.codigos import OK, DADOS_INVALIDOS, CONFLITO, NAO_ENCONTRADO
 
 # delega funções de biblioteca para o módulo especializado
 from controles.biblioteca_controler import Adicionar_Avaliacao, Remover_Avaliacao
+from controles.avaliacao_controler import Avaliar_Jogo, Remover_Avaliacao  # novo: funções de avaliação separadas
 
 __all__ = [
     "Criar_Perfil", "Listar_Perfil", "Busca_Perfil", "Busca_Perfil_por_nome",
     "Atualizar_Dados", "Atualizar_Perfil", "Desativar_Conta", "Remover_Perfil",
-    # delegadas / reexportadas
-    "Adicionar_Avaliacao", "Remover_Avaliacao"
+    "Avaliar_Jogo", "Remover_Avaliacao"
 ]
 
 
@@ -143,12 +143,12 @@ def Atualizar_Dados(id_perfil: int, nome: Optional[str] = None, descricao: Optio
 
 
 def Atualizar_Perfil(id_perfil: int, nome: Optional[str] = None, descricao: Optional[str] = None, avatar: Optional[str] = None) -> Tuple[int, Optional[Dict[str, Any]]]:
-    """Alias para compatibilidade com código legado."""
+    """Atualiza os dados do perfil."""
     return Atualizar_Dados(id_perfil, nome, descricao, avatar)
 
 
 def Desativar_Conta(id_perfil: int) -> Tuple[int, Optional[None]]:
-    """Desativa/Remove um perfil e salva as alterações (nome alternativo do diagrama)."""
+    """Desativa/Remove um perfil e salva as alterações na base."""
     perfil = _encontrar_por_id(id_perfil)
     if perfil is None:
         return NAO_ENCONTRADO, None
@@ -159,5 +159,5 @@ def Desativar_Conta(id_perfil: int) -> Tuple[int, Optional[None]]:
 
 
 def Remover_Perfil(id_perfil: int) -> Tuple[int, Optional[None]]:
-    """Alias para compatibilidade com código legado."""
+
     return Desativar_Conta(id_perfil)
