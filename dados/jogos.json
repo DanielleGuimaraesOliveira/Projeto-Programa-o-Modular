@@ -4,13 +4,21 @@
     "titulo": "God of War",
     "genero": "Ação",
     "descricao": "",
-    "nota_geral": 0.0
+    "nota_geral": 10.0
   },
   {
     "id": 2,
     "titulo": "Portal 2",
     "genero": "Puzzle",
     "descricao": "",
+    "nota_geral": 10.0
+  },
+  {
+    "id": 3,
+    "id_jogo": null,
+    "titulo": "Zelda",
+    "descricao": "Muita aventura",
+    "genero": "Aventura",
     "nota_geral": 10.0
   }
 ]

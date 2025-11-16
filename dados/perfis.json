@@ -1,10 +1,24 @@
 [
   {
-    "id": 3,
-    "nome": "Danielle",
-    "descricao": "opcional",
-    "avatar": "danimaraes",
+    "id": 1,
+    "ID_perfil": 1,
+    "nome_usuario": "danielle",
+    "nome": "danielle",
+    "descricao": "",
+    "avatar": "",
+    "seguidores": [],
+    "seguindo": [],
+    "jogando": 0,
+    "jogados": 1,
+    "platinados": 0,
     "favoritos": [],
-    "biblioteca": []
+    "biblioteca": [
+      {
+        "jogo_id": 1,
+        "status": "jogado",
+        "nota": 10.0,
+        "opiniao": "muito bom"
+      }
+    ]
   }
 ]

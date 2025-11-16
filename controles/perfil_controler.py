@@ -13,13 +13,40 @@ from dados.database import perfis, salvar_perfis
 from utils.codigos import OK, DADOS_INVALIDOS, CONFLITO, NAO_ENCONTRADO
 
 # delega funções de biblioteca para o módulo especializado
-from controles.biblioteca_controler import Adicionar_Avaliacao, Remover_Avaliacao
-from controles.avaliacao_controler import Avaliar_Jogo, Remover_Avaliacao  # novo: funções de avaliação separadas
+# Tentamos suportar implementações diferentes sem quebrar a importação.
+try:
+    # implementação onde as funções de avaliação já existem com esses nomes
+    from controles.biblioteca_controler import Adicionar_Avaliacao, Remover_Avaliacao  # type: ignore
+except (ImportError, ModuleNotFoundError):
+    try:
+        # implementação alternativa que usa nomes centrados em "biblioteca"
+        from controles.biblioteca_controler import Adicionar_Jogo, Remover_Jogo  # type: ignore
+        # criamos aliases esperados pelo restante do código
+        Adicionar_Avaliacao = Adicionar_Jogo  # type: ignore
+        Remover_Avaliacao = Remover_Jogo  # type: ignore
+    except (ImportError, ModuleNotFoundError):
+        # fallback: stubs que levantam erro claro apenas quando chamados
+        def _biblioteca_missing_stub(*args, **kwargs):
+            raise ModuleNotFoundError(
+                "Módulo 'controles.biblioteca_controler' não exporta funções de avaliação/biblioteca esperadas. "
+                "Crie 'Adicionar_Avaliacao'/'Remover_Avaliacao' ou 'Adicionar_Jogo'/'Remover_Jogo'."
+            )
+        Adicionar_Avaliacao = _biblioteca_missing_stub  # type: ignore
+        Remover_Avaliacao = _biblioteca_missing_stub  # type: ignore
+
+# Se houver um módulo de avaliações separado, importe suas funções (opcional).
+try:
+    from controles.avaliacao_controler import Avaliar_Jogo, Remover_Avaliacao as Remover_Avaliacao_de_avaliacao  # type: ignore
+except (ImportError, ModuleNotFoundError):
+    # não é obrigatório — continuamos funcionando com as funções da biblioteca
+    Avaliar_Jogo = None  # type: ignore
+    Remover_Avaliacao_de_avaliacao = None  # type: ignore
 
 __all__ = [
     "Criar_Perfil", "Listar_Perfil", "Busca_Perfil", "Busca_Perfil_por_nome",
     "Atualizar_Dados", "Atualizar_Perfil", "Desativar_Conta", "Remover_Perfil",
-    "Avaliar_Jogo", "Remover_Avaliacao"
+    "Avaliar_Jogo", "Remover_Avaliacao", "Seguir_Perfil", "Parar_de_Seguir",
+    "Listar_Seguidores", "Listar_Seguindo"
 ]
 
 
@@ -148,10 +175,27 @@ def Atualizar_Perfil(id_perfil: int, nome: Optional[str] = None, descricao: Opti
 
 
 def Desativar_Conta(id_perfil: int) -> Tuple[int, Optional[None]]:
-    """Desativa/Remove um perfil e salva as alterações na base."""
+    """Desativa/Remove um perfil e limpa referências em outros perfis."""
     perfil = _encontrar_por_id(id_perfil)
     if perfil is None:
         return NAO_ENCONTRADO, None
+
+    # remover referências em outros perfis (seguidores / seguindo)
+    for p in list(perfis):  # itera sobre cópia para segurança
+        if p.get("id") == id_perfil:
+            continue
+        if "seguindo" in p and id_perfil in p["seguindo"]:
+            try:
+                p["seguindo"].remove(id_perfil)
+            except ValueError:
+                pass
+        if "seguidores" in p and id_perfil in p["seguidores"]:
+            try:
+                p["seguidores"].remove(id_perfil)
+            except ValueError:
+                pass
+
+    # agora remove o perfil da lista
     perfis.remove(perfil)
     salvar_perfis()
     return OK, None
@@ -161,3 +205,53 @@ def Desativar_Conta(id_perfil: int) -> Tuple[int, Optional[None]]:
 def Remover_Perfil(id_perfil: int) -> Tuple[int, Optional[None]]:
 
     return Desativar_Conta(id_perfil)
+
+
+def Seguir_Perfil(id_seguidor: int, id_alvo: int) -> Tuple[int, Optional[Dict[str, Any]]]:
+    """Faz id_seguidor seguir id_alvo. Atualiza listas 'seguindo' e 'seguidores'."""
+    if id_seguidor == id_alvo:
+        return DADOS_INVALIDOS, None
+
+    seguidor = _encontrar_por_id(id_seguidor)
+    alvo = _encontrar_por_id(id_alvo)
+    if seguidor is None or alvo is None:
+        return NAO_ENCONTRADO, None
+
+    if id_alvo in seguidor.get("seguindo", []):
+        return CONFLITO, None
+
+    seguidor.setdefault("seguindo", []).append(id_alvo)
+    alvo.setdefault("seguidores", []).append(id_seguidor)
+    salvar_perfis()
+    return OK, seguidor
+
+
+def Parar_de_Seguir(id_seguidor: int, id_alvo: int) -> Tuple[int, Optional[Dict[str, Any]]]:
+    """Faz id_seguidor parar de seguir id_alvo."""
+    seguidor = _encontrar_por_id(id_seguidor)
+    alvo = _encontrar_por_id(id_alvo)
+    if seguidor is None or alvo is None:
+        return NAO_ENCONTRADO, None
+
+    if id_alvo not in seguidor.get("seguindo", []):
+        return NAO_ENCONTRADO, None
+
+    seguidor["seguindo"].remove(id_alvo)
+    if id_seguidor in alvo.get("seguidores", []):
+        alvo["seguidores"].remove(id_seguidor)
+    salvar_perfis()
+    return OK, seguidor
+
+
+def Listar_Seguidores(id_perfil: int) -> Tuple[int, List[int]]:
+    perfil = _encontrar_por_id(id_perfil)
+    if perfil is None:
+        return NAO_ENCONTRADO, []
+    return OK, perfil.get("seguidores", [])
+
+
+def Listar_Seguindo(id_perfil: int) -> Tuple[int, List[int]]:
+    perfil = _encontrar_por_id(id_perfil)
+    if perfil is None:
+        return NAO_ENCONTRADO, []
+    return OK, perfil.get("seguindo", [])

@@ -1,7 +1,8 @@
 # interface/menu_jogos.py
 from controles import jogo_controler as jogo_controller
 from controles import perfil_controler
-from utils.codigos import OK, DADOS_INVALIDOS, NAO_ENCONTRADO
+from controles import avaliacao_controler as avaliacao_controller
+from utils.codigos import OK, DADOS_INVALIDOS, NAO_ENCONTRADO, CONFLITO
 
 def _coletar_media_e_opinioes(id_jogo, perfil_atual=None):
     """
@@ -24,7 +25,6 @@ def _coletar_media_e_opinioes(id_jogo, perfil_atual=None):
                     continue
                 soma_notas += nota_valor
                 quantidade_avaliacoes += 1
-                # incluir opinião (pode incluir a do próprio usuário também)
                 lista_opinioes.append({
                     "perfil": perfil.get("nome", "(sem nome)"),
                     "nota": nota_valor,
@@ -88,24 +88,108 @@ def exibir_menu(perfil):
     while True:
         print("\n=== CATÁLOGO DE JOGOS ===")
         print("1. Listar catálogo")
-        print("2. Buscar jogo por nome")
-        print("3. Avaliar / Adicionar à minha biblioteca")
-        print("4. Minha biblioteca")
+        print("2. Cadastrar jogo")
+        print("3. Atualizar jogo")
+        print("4. Remover jogo")
+        print("5. Avaliar jogo")
+        print("6. Minha biblioteca")
         print("0. Voltar")
         opcao = input("Escolha: ")
 
         if opcao == "1":
             listar_jogos(perfil)
         elif opcao == "2":
-            buscar_jogo_por_nome(perfil)
+            cadastrar_jogo()
         elif opcao == "3":
-            avaliar_jogo(perfil)
+            atualizar_jogo()
         elif opcao == "4":
+            remover_jogo()
+        elif opcao == "5":
+            avaliar_jogo(perfil)
+        elif opcao == "6":
             mostrar_biblioteca(perfil)
         elif opcao == "0":
             break
         else:
             print("❌ Opção inválida.")
+
+def cadastrar_jogo():
+    print("\n--- Cadastrar Jogo ---")
+    titulo = input("Título: ").strip()
+    genero = input("Gênero: ").strip()
+    descricao = input("Descrição (opcional): ").strip()
+    nota_input = input("Nota geral inicial (0-10, opcional, ENTER para 0): ").strip()
+    nota = 0.0
+    if nota_input:
+        try:
+            nota = float(nota_input.replace(',', '.'))
+        except ValueError:
+            print("⚠️  Nota inválida. Use número entre 0 e 10.")
+            return
+    codigo, jogo = jogo_controller.Cadastrar_Jogo(titulo, descricao, genero, nota)
+    if codigo == OK:
+        print(f"✅ Jogo cadastrado: {jogo['titulo']} (id={jogo['id']})")
+    elif codigo == DADOS_INVALIDOS:
+        print("❌ Dados inválidos.")
+    elif codigo == CONFLITO:
+        print("❌ Jogo já existe.")
+    else:
+        print("❌ Erro ao cadastrar.")
+
+def buscar_jogo_por_id():
+    try:
+        id_busca = int(input("ID do jogo: ").strip())
+    except ValueError:
+        print("⚠️  ID inválido.")
+        return
+    codigo, jogo = jogo_controller.Busca_Jogo(id_busca)
+    if codigo == OK and jogo:
+        print(f"✅ Encontrado: {jogo['id']} - {jogo['titulo']} ({jogo.get('genero','-')})")
+        print(f"Descrição: {jogo.get('descricao','(sem descrição)')}")
+        print(f"Nota geral: {jogo.get('nota_geral', 0.0)}")
+    else:
+        print("❌ Jogo não encontrado.")
+
+def atualizar_jogo():
+    try:
+        id_up = int(input("ID do jogo a atualizar: ").strip())
+    except ValueError:
+        print("⚠️  ID inválido.")
+        return
+    titulo = input("Novo título: ").strip()
+    genero = input("Novo gênero: ").strip()
+    descricao = input("Nova descrição (opcional): ").strip()
+    nota_input = input("Nova nota geral (0-10): ").strip()
+    try:
+        nota = float(nota_input.replace(',', '.'))
+    except ValueError:
+        print("⚠️  Nota inválida.")
+        return
+    codigo, jogo = jogo_controller.Atualizar_Jogo(id_up, titulo, descricao, genero, nota)
+    if codigo == OK:
+        print("✅ Jogo atualizado.")
+    elif codigo == DADOS_INVALIDOS:
+        print("❌ Dados inválidos.")
+    elif codigo == NAO_ENCONTRADO:
+        print("❌ Jogo não encontrado.")
+    elif codigo == CONFLITO:
+        print("❌ Conflito de título.")
+    else:
+        print("❌ Erro ao atualizar.")
+
+def remover_jogo():
+    try:
+        id_rm = int(input("ID do jogo a remover: ").strip())
+    except ValueError:
+        print("⚠️  ID inválido.")
+        return
+    codigo, _ = jogo_controller.Remover_Jogo(id_rm)
+    if codigo == OK:
+        print("✅ Jogo removido.")
+    elif codigo == NAO_ENCONTRADO:
+        print("❌ Jogo não encontrado.")
+    else:
+        print("❌ Erro ao remover.")
 
 def listar_jogos(perfil):
     codigo, lista = jogo_controller.Listar_Jogo()
@@ -236,8 +320,17 @@ def avaliar_jogo(perfil):
 
     opiniao = input("Escreva sua opinião (opcional): ").strip()
 
-    codigo, aval = perfil_controler.Adicionar_Avaliacao(perfil['id'], jogo_selecionado['id'], nota, opiniao)
+    # usa o módulo de avaliações separado
+    codigo, aval = avaliacao_controller.Avaliar_Jogo(perfil['id'], jogo_selecionado['id'], nota, opiniao)
     if codigo == OK:
+        # também grava na biblioteca se quiser — manter compatibilidade
+        bibli = perfil.setdefault("biblioteca", [])
+        entry = next((e for e in bibli if e.get("jogo_id") == jogo_selecionado["id"]), None)
+        if entry:
+            entry["nota"] = nota
+            entry["opiniao"] = opiniao or ""
+        else:
+            bibli.append({"jogo_id": jogo_selecionado["id"], "nota": nota, "opiniao": opiniao or ""})
         print(f"✅ Avaliação registrada para '{jogo_selecionado['titulo']}'!")
     elif codigo == DADOS_INVALIDOS:
         print("❌ Nota inválida (use 0-10).")
@@ -291,7 +384,7 @@ def mostrar_biblioteca(perfil):
                 print("⚠️  Nota inválida.")
                 continue
             nova_opiniao = input("Nova opinião (opcional): ").strip()
-            codigo, _ = perfil_controler.Adicionar_Avaliacao(perfil['id'], id_jogo, nova_nota, nova_opiniao)
+            codigo, _ = avaliacao_controller.Avaliar_Jogo(perfil['id'], id_jogo, nova_nota, nova_opiniao)
             if codigo == OK:
                 print("✅ Avaliação atualizada.")
                 entry["nota"] = nova_nota
@@ -305,8 +398,10 @@ def mostrar_biblioteca(perfil):
             while confirm not in ["s", "n"]:
                 confirm = input("Tem certeza que deseja remover este jogo da sua biblioteca? (s/n): ").strip().lower()
             if confirm == "s":
-                codigo, _ = perfil_controler.Remover_Avaliacao(perfil['id'], id_jogo)
+                codigo, _ = avaliacao_controller.Remover_Avaliacao(perfil['id'], id_jogo)
                 if codigo == OK:
+                    # também remover da lista local exibida
+                    bibli.remove(entry)
                     print("✅ Jogo removido da biblioteca.")
                 elif codigo == NAO_ENCONTRADO:
                     print("❌ Jogo não encontrado na biblioteca.")

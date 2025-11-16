@@ -41,7 +41,18 @@ def _validar_campos_obrigatorios(titulo: Optional[str], genero: Optional[str]) -
     return bool(titulo and titulo.strip()) and bool(genero and genero.strip())
 
 
-def Cadastrar_Jogo(titulo: str, descricao: Optional[str], genero: str) -> Tuple[int, Optional[Dict[str, Any]]]:
+def _validar_nota(nota: Optional[float]) -> bool:
+    """Valida nota_geral (0.0 - 10.0) ou None."""
+    if nota is None:
+        return True
+    try:
+        n = float(nota)
+    except Exception:
+        return False
+    return 0.0 <= n <= 10.0
+
+
+def Cadastrar_Jogo(titulo: str, descricao: Optional[str], genero: str, nota_geral: Optional[float] = 0.0) -> Tuple[int, Optional[Dict[str, Any]]]:
     """Cadastra um novo jogo.
 
     Retorna (código, jogo) — em caso de erro retorna (código, None).
@@ -49,16 +60,19 @@ def Cadastrar_Jogo(titulo: str, descricao: Optional[str], genero: str) -> Tuple[
     if not _validar_campos_obrigatorios(titulo, genero):
         return DADOS_INVALIDOS, None
 
+    if not _validar_nota(nota_geral):
+        return DADOS_INVALIDOS, None
+
     if _titulo_ja_existe(titulo):
         return CONFLITO, None
 
     novo_jogo = {
         "id": _proximo_id(jogos),
-        "id_jogo": None,  # manter compatibilidade se necessário; pode ser preenchido por quem consumir
+        "id_jogo": None,  # manter compatibilidade se necessário
         "titulo": titulo.strip(),
         "descricao": (descricao or "").strip(),
         "genero": genero.strip(),
-        "nota_geral": 0.0
+        "nota_geral": float(nota_geral or 0.0)
     }
     jogos.append(novo_jogo)
     salvar_jogos()
@@ -78,10 +92,10 @@ def Busca_Jogo(id_jogo: int) -> Tuple[int, Optional[Dict[str, Any]]]:
     return OK, jogo
 
 
-def Atualizar_Jogo(id_jogo: int, titulo: str, descricao: Optional[str], genero: str) -> Tuple[int, Optional[Dict[str, Any]]]:
+def Atualizar_Jogo(id_jogo: int, titulo: str, descricao: Optional[str], genero: str, nota_geral: Optional[float]) -> Tuple[int, Optional[Dict[str, Any]]]:
     """Atualiza campos de um jogo existente.
 
-    Verifica existência, valida campos e evita conflito de título com outros jogos.
+    Assinatura: (id_jogo: int, titulo: str, descricao: str, genero: str, nota_geral: float)
     """
     jogo = _encontrar_por_id(id_jogo)
     if jogo is None:
@@ -90,12 +104,16 @@ def Atualizar_Jogo(id_jogo: int, titulo: str, descricao: Optional[str], genero: 
     if not _validar_campos_obrigatorios(titulo, genero):
         return DADOS_INVALIDOS, None
 
+    if not _validar_nota(nota_geral):
+        return DADOS_INVALIDOS, None
+
     if _titulo_ja_existe(titulo, ignorar_id=id_jogo):
         return CONFLITO, None
 
     jogo["titulo"] = titulo.strip()
     jogo["descricao"] = (descricao or "").strip()
     jogo["genero"] = genero.strip()
+    jogo["nota_geral"] = float(nota_geral or jogo.get("nota_geral", 0.0))
     salvar_jogos()
     return OK, jogo
 

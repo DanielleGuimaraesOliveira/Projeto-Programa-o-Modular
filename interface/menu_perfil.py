@@ -1,6 +1,6 @@
 from typing import Optional, Dict
 from controles import perfil_controler
-from utils.codigos import OK, CONFLITO, DADOS_INVALIDOS, NAO_ENCONTRADO
+from utils.codigos import OK, CONFLITO, DADOS_INVALIDOS
 
 def _input_strip(prompt: str) -> str:
     return input(prompt).strip()
@@ -10,13 +10,13 @@ def _print_header(titulo: str) -> None:
 
 def exibir_menu_inicial() -> Optional[Dict]:
     """
-    Exibe o menu inicial: entrar ou criar perfil.
-    Retorna o perfil selecionado/criado (dict) ou None se o usuário sair.
+    Exibe menu inicial: entrar, cadastrar perfil ou sair.
+    Retorna o dict do perfil ativo ou None se o usuário sair.
     """
     while True:
-        _print_header("MENU INICIAL")
-        print("1. Entrar com perfil existente")
-        print("2. Criar novo perfil")
+        _print_header("BEM VINDO - LETTERBOX GAMES")
+        print("1. Entrar")
+        print("2. Cadastrar perfil")
         print("0. Sair")
         opcao = _input_strip("Escolha: ")
 
@@ -29,49 +29,51 @@ def exibir_menu_inicial() -> Optional[Dict]:
             if perfil:
                 return perfil
         elif opcao == "0":
-            print("👋 Até logo!")
             return None
         else:
             print("❌ Opção inválida.")
 
 def selecionar_perfil() -> Optional[Dict]:
     """
-    Solicita o nome do perfil e tenta recuperar via controlador.
-    Retorna o dict do perfil em caso de sucesso, ou None.
+    Solicita ID ou nome do perfil e retorna o perfil se encontrado.
     """
-    nome = _input_strip("Digite o nome do perfil: ")
-    if not nome:
-        print("⚠️  Nome vazio.")
+    entrada = _input_strip("Digite ID ou nome do perfil: ")
+    if not entrada:
+        print("⚠️  Entrada vazia.")
         return None
 
-    codigo, perfil = perfil_controler.Busca_Perfil_por_nome(nome)
+    # tenta por id primeiro
+    if entrada.isdigit():
+        codigo, perfil = perfil_controler.Busca_Perfil(int(entrada))
+    else:
+        codigo, perfil = perfil_controler.Busca_Perfil_por_nome(entrada)
+
     if codigo == OK and perfil:
-        print(f"✅ Entrando como {perfil['nome']}")
+        print(f"✅ Entrou como: {perfil.get('nome_usuario', perfil.get('nome','(sem nome)'))}")
         return perfil
-    print("❌ Perfil não encontrado.")
-    return None
+    else:
+        print("❌ Perfil não encontrado.")
+        return None
 
 def cadastrar_perfil() -> Optional[Dict]:
     """
-    Gera a interface para criação de um novo perfil.
-    Valida nome não vazio antes de chamar o controlador.
+    Cria um novo perfil. Retorna o perfil criado em caso de sucesso.
     """
-    nome = _input_strip("Digite o nome de usuário: ")
+    nome = _input_strip("Nome de usuário: ")
     if not nome:
-        print("⚠️  Nome inválido ou vazio.")
+        print("⚠️  Nome vazio.")
         return None
+    descricao = _input_strip("Descrição (opcional): ")
+    avatar = _input_strip("Avatar (opcional): ")
 
-    descricao = _input_strip("Digite uma descrição (opcional): ")
-    avatar = _input_strip("Digite o nome do avatar (opcional): ")
-
-    codigo, perfil = perfil_controler.Criar_Perfil(nome, descricao, avatar)
+    codigo, perfil = perfil_controler.Criar_Perfil(nome, descricao or None, avatar or None)
     if codigo == OK and perfil:
-        print(f"✅ Perfil '{perfil['nome']}' criado com sucesso!")
+        print(f"✅ Perfil criado: {perfil.get('nome_usuario')}")
         return perfil
-    if codigo == CONFLITO:
-        print("⚠️  Já existe um perfil com esse nome.")
     elif codigo == DADOS_INVALIDOS:
-        print("❌ Nome inválido.")
+        print("❌ Dados inválidos ao criar perfil.")
+    elif codigo == CONFLITO:
+        print("❌ Nome de usuário já existe.")
     else:
-        print("❌ Erro inesperado.")
+        print("❌ Erro ao criar perfil.")
     return None
