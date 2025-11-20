@@ -5,9 +5,9 @@ Mantém as assinaturas públicas (Cadastrar_Jogo, Listar_Jogo, Busca_Jogo,
 Atualizar_Jogo, Remover_Jogo) para compatibilidade com o restante do projeto.
 """
 from typing import Dict, List, Optional, Tuple, Any
+from utils.codigos import OK, DADOS_INVALIDOS, CONFLITO, NAO_ENCONTRADO
 
 from dados.database import jogos, salvar_jogos
-from utils.codigos import OK, DADOS_INVALIDOS, CONFLITO, NAO_ENCONTRADO
 
 __all__ = [
     "Cadastrar_Jogo", "Listar_Jogo", "Busca_Jogo", "Atualizar_Jogo", "Remover_Jogo"
@@ -52,31 +52,29 @@ def _validar_nota(nota: Optional[float]) -> bool:
     return 0.0 <= n <= 10.0
 
 
-def Cadastrar_Jogo(titulo: str, descricao: Optional[str], genero: str, nota_geral: Optional[float] = 0.0) -> Tuple[int, Optional[Dict[str, Any]]]:
-    """Cadastra um novo jogo.
-
-    Retorna (código, jogo) — em caso de erro retorna (código, None).
+def Cadastrar_Jogo(titulo: str, descricao: Optional[str], genero: str, nota_geral: Optional[float]) -> Tuple[int, Optional[Dict[str, Any]]]:
     """
-    if not _validar_campos_obrigatorios(titulo, genero):
+    Cadastra um novo jogo. Verifica campos obrigatórios e unicidade de título (case-insensitive).
+    Nota_geral é calculada pelas avaliações e será inicializada como 0.0.
+    """
+    if not titulo or not genero:
         return DADOS_INVALIDOS, None
 
-    if not _validar_nota(nota_geral):
-        return DADOS_INVALIDOS, None
-
-    if _titulo_ja_existe(titulo):
+    titulo_norm = titulo.strip().lower()
+    if any((j.get("titulo") or "").strip().lower() == titulo_norm for j in jogos):
         return CONFLITO, None
 
-    novo_jogo = {
-        "id": _proximo_id(jogos),
-        "id_jogo": None,  # manter compatibilidade se necessário
-        "titulo": titulo.strip(),
-        "descricao": (descricao or "").strip(),
-        "genero": genero.strip(),
-        "nota_geral": float(nota_geral or 0.0)
+    novo_id = max((j.get("id", 0) for j in jogos), default=0) + 1
+    jogo = {
+        "id": novo_id,
+        "titulo": titulo,
+        "descricao": descricao or "",
+        "genero": genero,
+        "nota_geral": 0.0
     }
-    jogos.append(novo_jogo)
+    jogos.append(jogo)
     salvar_jogos()
-    return OK, novo_jogo
+    return OK, jogo
 
 
 def Listar_Jogo() -> Tuple[int, List[Dict[str, Any]]]:

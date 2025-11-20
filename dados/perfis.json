@@ -2,23 +2,16 @@
   {
     "id": 1,
     "ID_perfil": 1,
-    "nome_usuario": "danielle",
-    "nome": "danielle",
+    "nome_usuario": "x1",
+    "nome": "x1",
     "descricao": "",
     "avatar": "",
     "seguidores": [],
     "seguindo": [],
     "jogando": 0,
-    "jogados": 1,
+    "jogados": 0,
     "platinados": 0,
     "favoritos": [],
-    "biblioteca": [
-      {
-        "jogo_id": 1,
-        "status": "jogado",
-        "nota": 10.0,
-        "opiniao": "muito bom"
-      }
-    ]
+    "biblioteca": []
   }
 ]

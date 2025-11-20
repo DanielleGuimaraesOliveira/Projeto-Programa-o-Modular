@@ -51,3 +51,9 @@ Como executar
    ````bash
    python3 main.py
 ````
+Como executar os testes:
+1. Abra o workspace no container/development environment (Ubuntu 24.04).
+2. Execute no terminal:
+````
+python3 -m pytest -q testes
+````

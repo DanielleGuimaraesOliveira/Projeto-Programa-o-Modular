@@ -7,7 +7,8 @@ Agora o perfil contém os campos esperados pelo diagrama:
 Mantém compatibilidade com chaves antigas ('nome') e com as funções
 anteriores (Atualizar_Perfil, Remover_Perfil) como aliases.
 """
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Tuple, Optional, Dict, Any, List
+from controles import avaliacao_controler
 
 from dados.database import perfis, salvar_perfis
 from utils.codigos import OK, DADOS_INVALIDOS, CONFLITO, NAO_ENCONTRADO
@@ -255,3 +256,16 @@ def Listar_Seguindo(id_perfil: int) -> Tuple[int, List[int]]:
     if perfil is None:
         return NAO_ENCONTRADO, []
     return OK, perfil.get("seguindo", [])
+
+
+def Adicionar_Avaliacao(id_perfil: int, id_jogo: int, nota: float, opiniao: Optional[str] = "") -> Tuple[int, Optional[Dict[str, Any]]]:
+    """
+    Wrapper usado pelos testes: delega para avaliacao_controler.Avaliar_Jogo.
+    """
+    return avaliacao_controler.Avaliar_Jogo(id_perfil, id_jogo, nota, opiniao)
+
+def Remover_Avaliacao(id_perfil: int, id_jogo: int) -> Tuple[int, Optional[None]]:
+    """
+    Wrapper usado pelos testes: delega para avaliacao_controler.Remover_Avaliacao.
+    """
+    return avaliacao_controler.Remover_Avaliacao(id_perfil, id_jogo)
