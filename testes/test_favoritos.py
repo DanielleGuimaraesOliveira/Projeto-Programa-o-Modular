@@ -1,7 +1,7 @@
 import pytest
 from utils.codigos import OK, NAO_ENCONTRADO, CONFLITO
 import dados.database as db
-import controles.biblioteca_controler as bib_ctrl
+import controles.favoritos_controler as fav_ctrl
 import controles.perfil_controler as perfil_ctrl
 
 @pytest.fixture(autouse=True)
@@ -17,16 +17,16 @@ def clean_db(monkeypatch):
 
 def test_favoritar_desfavoritar_listar():
     _, p = perfil_ctrl.Criar_Perfil("favuser")
-    code, _ = bib_ctrl.Favoritar_Jogo(p["id"], 1)
+    code, _ = fav_ctrl.Favoritar_Jogo(p["id"], 1)
     assert code == OK
     # duplicação
-    code_dup, _ = bib_ctrl.Favoritar_Jogo(p["id"], 1)
+    code_dup, _ = fav_ctrl.Favoritar_Jogo(p["id"], 1)
     assert code_dup == CONFLITO
     # listar
-    code_list, favs = bib_ctrl.Listar_Favoritos(p["id"])
+    code_list, favs = fav_ctrl.Listar_Favoritos(p["id"])
     assert code_list == OK and favs == [1]
     # desfavoritar
-    code_des, _ = bib_ctrl.Desfavoritar_Jogo(p["id"], 1)
+    code_des, _ = fav_ctrl.Desfavoritar_Jogo(p["id"], 1)
     assert code_des == OK
-    code_des_again, _ = bib_ctrl.Desfavoritar_Jogo(p["id"], 1)
+    code_des_again, _ = fav_ctrl.Desfavoritar_Jogo(p["id"], 1)
     assert code_des_again == NAO_ENCONTRADO
