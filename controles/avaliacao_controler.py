@@ -97,3 +97,5 @@ def Remover_Avaliacao(id_perfil: int, id_jogo: int) -> Tuple[int, Optional[None]
     salvar_perfis()
     _recalcular_nota_geral(id_jogo)
     return OK, None
+
+__all__ = ["Avaliar_Jogo", "Remover_Avaliacao"]

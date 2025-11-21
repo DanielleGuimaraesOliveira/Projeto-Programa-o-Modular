@@ -258,10 +258,8 @@ def Listar_Seguindo(id_perfil: int) -> Tuple[int, List[int]]:
     return OK, perfil.get("seguindo", [])
 
 
-def Adicionar_Avaliacao(id_perfil: int, id_jogo: int, nota: float, opiniao: Optional[str] = "") -> Tuple[int, Optional[Dict[str, Any]]]:
-    """
-    Wrapper usado pelos testes: delega para avaliacao_controler.Avaliar_Jogo.
-    """
+def Avaliar_Jogo(id_perfil: int, id_jogo: int, nota: float, opiniao: Optional[str] = "") -> Tuple[int, Optional[Dict[str, Any]]]:
+    """Wrapper público que delega para controles.avaliacao_controler.Avaliar_Jogo."""
     return avaliacao_controler.Avaliar_Jogo(id_perfil, id_jogo, nota, opiniao)
 
 def Remover_Avaliacao(id_perfil: int, id_jogo: int) -> Tuple[int, Optional[None]]:

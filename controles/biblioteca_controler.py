@@ -125,3 +125,9 @@ def Listar_Favoritos(id_perfil: int) -> Tuple[int, List[int]]:
     if perfil is None:
         return NAO_ENCONTRADO, []
     return OK, perfil.get("favoritos", [])
+
+__all__ = [
+    "Adicionar_Jogo", "Remover_Jogo", "Atualizar_Status_Jogo",
+    "Listar_Biblioteca", "Listar_Biblioteca_por_status",
+    "Favoritar_Jogo", "Desfavoritar_Jogo", "Listar_Favoritos"
+]

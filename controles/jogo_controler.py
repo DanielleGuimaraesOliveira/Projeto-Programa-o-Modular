@@ -7,7 +7,7 @@ Atualizar_Jogo, Remover_Jogo) para compatibilidade com o restante do projeto.
 from typing import Dict, List, Optional, Tuple, Any
 from utils.codigos import OK, DADOS_INVALIDOS, CONFLITO, NAO_ENCONTRADO
 
-from dados.database import jogos, salvar_jogos
+from dados.database import jogos, salvar_jogos, perfis, salvar_perfis
 
 __all__ = [
     "Cadastrar_Jogo", "Listar_Jogo", "Busca_Jogo", "Atualizar_Jogo", "Remover_Jogo"
@@ -117,11 +117,31 @@ def Atualizar_Jogo(id_jogo: int, titulo: str, descricao: Optional[str], genero: 
 
 
 def Remover_Jogo(id_jogo: int) -> Tuple[int, Optional[None]]:
-    """Remove um jogo por id."""
+    """Remove um jogo por id e limpa referências em perfis (favoritos e biblioteca)."""
     jogo = _encontrar_por_id(id_jogo)
     if jogo is None:
         return NAO_ENCONTRADO, None
 
+    # limpar referências em todos os perfis: favoritos e biblioteca
+    for p in perfis:
+        # remover favoritos
+        if "favoritos" in p and id_jogo in p["favoritos"]:
+            try:
+                p["favoritos"].remove(id_jogo)
+            except ValueError:
+                pass
+        # remover entradas da biblioteca relacionadas ao jogo
+        if "biblioteca" in p:
+            bibli = p["biblioteca"]
+            nova_bibli = [e for e in bibli if e.get("jogo_id") != id_jogo]
+            if len(nova_bibli) != len(bibli):
+                p["biblioteca"] = nova_bibli
+                # recalcula contadores derivados
+                p["jogando"] = sum(1 for e in nova_bibli if e.get("status") == "jogando")
+                p["jogados"] = sum(1 for e in nova_bibli if e.get("status") == "jogado")
+                p["platinados"] = sum(1 for e in nova_bibli if e.get("status") == "platinado")
+
     jogos.remove(jogo)
     salvar_jogos()
+    salvar_perfis()
     return OK, None
