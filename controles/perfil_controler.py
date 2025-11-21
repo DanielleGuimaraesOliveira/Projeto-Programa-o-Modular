@@ -9,6 +9,7 @@ anteriores (Atualizar_Perfil, Remover_Perfil) como aliases.
 """
 from typing import Tuple, Optional, Dict, Any, List
 from controles import avaliacao_controler
+from controles import seguidores_controler as seguidores_ctrl
 
 from dados.database import perfis, salvar_perfis
 from utils.codigos import OK, DADOS_INVALIDOS, CONFLITO, NAO_ENCONTRADO
@@ -178,54 +179,17 @@ def Remover_Perfil(id_perfil: int) -> Tuple[int, Optional[None]]:
     return Desativar_Conta(id_perfil)
 
 
-def Seguir_Perfil(id_seguidor: int, id_alvo: int) -> Tuple[int, Optional[Dict[str, Any]]]:
-    """Faz id_seguidor seguir id_alvo. Atualiza listas 'seguindo' e 'seguidores'."""
-    if id_seguidor == id_alvo:
-        return DADOS_INVALIDOS, None
+def Seguir_Perfil(id_seguidor: int, id_alvo: int):
+    return seguidores_ctrl.Seguir_Perfil(id_seguidor, id_alvo)
 
-    seguidor = _encontrar_por_id(id_seguidor)
-    alvo = _encontrar_por_id(id_alvo)
-    if seguidor is None or alvo is None:
-        return NAO_ENCONTRADO, None
+def Parar_de_Seguir(id_seguidor: int, id_alvo: int):
+    return seguidores_ctrl.Parar_de_Seguir(id_seguidor, id_alvo)
 
-    if id_alvo in seguidor.get("seguindo", []):
-        return CONFLITO, None
+def Listar_Seguidores(id_perfil: int):
+    return seguidores_ctrl.Listar_Seguidores(id_perfil)
 
-    seguidor.setdefault("seguindo", []).append(id_alvo)
-    alvo.setdefault("seguidores", []).append(id_seguidor)
-    salvar_perfis()
-    return OK, seguidor
-
-
-def Parar_de_Seguir(id_seguidor: int, id_alvo: int) -> Tuple[int, Optional[Dict[str, Any]]]:
-    """Faz id_seguidor parar de seguir id_alvo."""
-    seguidor = _encontrar_por_id(id_seguidor)
-    alvo = _encontrar_por_id(id_alvo)
-    if seguidor is None or alvo is None:
-        return NAO_ENCONTRADO, None
-
-    if id_alvo not in seguidor.get("seguindo", []):
-        return NAO_ENCONTRADO, None
-
-    seguidor["seguindo"].remove(id_alvo)
-    if id_seguidor in alvo.get("seguidores", []):
-        alvo["seguidores"].remove(id_seguidor)
-    salvar_perfis()
-    return OK, seguidor
-
-
-def Listar_Seguidores(id_perfil: int) -> Tuple[int, List[int]]:
-    perfil = _encontrar_por_id(id_perfil)
-    if perfil is None:
-        return NAO_ENCONTRADO, []
-    return OK, perfil.get("seguidores", [])
-
-
-def Listar_Seguindo(id_perfil: int) -> Tuple[int, List[int]]:
-    perfil = _encontrar_por_id(id_perfil)
-    if perfil is None:
-        return NAO_ENCONTRADO, []
-    return OK, perfil.get("seguindo", [])
+def Listar_Seguindo(id_perfil: int):
+    return seguidores_ctrl.Listar_Seguindo(id_perfil)
 
 
 def Avaliar_Jogo(id_perfil: int, id_jogo: int, nota: float, opiniao: Optional[str] = "") -> Tuple[int, Optional[Dict[str, Any]]]:
