@@ -1,5 +1,5 @@
 from typing import Optional, Dict
-from controles import biblioteca_controler
+from controles import favoritos_controler
 from controles import jogo_controler
 from utils.codigos import OK, NAO_ENCONTRADO, CONFLITO
 
@@ -19,7 +19,7 @@ def exibir_menu_favoritos(perfil: Optional[Dict]):
         opcao = _input_strip("Escolha: ")
 
         if opcao == "1":
-            codigo, lista = biblioteca_controler.Listar_Favoritos(perfil['id'])
+            codigo, lista = favoritos_controler.Listar_Favoritos(perfil['id'])
             if codigo == OK:
                 if not lista:
                     print("  (nenhum favorito)")
@@ -36,7 +36,7 @@ def exibir_menu_favoritos(perfil: Optional[Dict]):
             except ValueError:
                 print("⚠️  ID inválido.")
                 continue
-            codigo, _ = biblioteca_controler.Desfavoritar_Jogo(perfil['id'], id_j)
+            codigo, _ = favoritos_controler.Desfavoritar_Jogo(perfil['id'], id_j)
             if codigo == OK:
                 print("✅ Jogo removido dos favoritos.")
             elif codigo == NAO_ENCONTRADO:

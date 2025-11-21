@@ -1,6 +1,7 @@
 from typing import Optional, Dict
 from controles import biblioteca_controler
 from controles import jogo_controler
+from controles import favoritos_controler
 from utils.codigos import OK, DADOS_INVALIDOS, NAO_ENCONTRADO, CONFLITO
 
 def _input_strip(prompt: str) -> str:
@@ -100,7 +101,7 @@ def exibir_menu_biblioteca(perfil: Optional[Dict]):
             except ValueError:
                 print("⚠️  ID inválido.")
                 continue
-            codigo, _ = biblioteca_controler.Favoritar_Jogo(perfil['id'], id_j)
+            codigo, _ = favoritos_controler.Favoritar_Jogo(perfil['id'], id_j)
             if codigo == OK:
                 print("✅ Jogo favoritado.")
             elif codigo == CONFLITO:
@@ -110,7 +111,7 @@ def exibir_menu_biblioteca(perfil: Optional[Dict]):
             else:
                 print("❌ Erro ao favoritar.")
         elif opcao == "7":
-            codigo, lista = biblioteca_controler.Listar_Favoritos(perfil['id'])
+            codigo, lista = favoritos_controler.Listar_Favoritos(perfil['id'])
             if codigo == OK:
                 if not lista:
                     print("  (nenhum favorito)")

@@ -93,41 +93,7 @@ def Listar_Biblioteca_por_status(id_perfil: int, status: str) -> Tuple[int, List
     filtrada = [e for e in perfil.get("biblioteca", []) if e.get("status") == status.lower()]
     return OK, filtrada
 
-# Favoritos
-def Favoritar_Jogo(id_perfil: int, id_jogo: int) -> Tuple[int, Optional[Dict[str, Any]]]:
-    perfil = _encontrar_perfil(id_perfil)
-    if perfil is None:
-        return NAO_ENCONTRADO, None
-    codigo_jogo, jogo = jogo_controler.Busca_Jogo(id_jogo)
-    if codigo_jogo != OK or jogo is None:
-        return NAO_ENCONTRADO, None
-
-    favs = perfil.setdefault("favoritos", [])
-    if id_jogo in favs:
-        return CONFLITO, None
-    favs.append(id_jogo)
-    salvar_perfis()
-    return OK, perfil
-
-def Desfavoritar_Jogo(id_perfil: int, id_jogo: int) -> Tuple[int, Optional[None]]:
-    perfil = _encontrar_perfil(id_perfil)
-    if perfil is None:
-        return NAO_ENCONTRADO, None
-    favs = perfil.get("favoritos", [])
-    if id_jogo not in favs:
-        return NAO_ENCONTRADO, None
-    favs.remove(id_jogo)
-    salvar_perfis()
-    return OK, None
-
-def Listar_Favoritos(id_perfil: int) -> Tuple[int, List[int]]:
-    perfil = _encontrar_perfil(id_perfil)
-    if perfil is None:
-        return NAO_ENCONTRADO, []
-    return OK, perfil.get("favoritos", [])
-
 __all__ = [
     "Adicionar_Jogo", "Remover_Jogo", "Atualizar_Status_Jogo",
-    "Listar_Biblioteca", "Listar_Biblioteca_por_status",
-    "Favoritar_Jogo", "Desfavoritar_Jogo", "Listar_Favoritos"
+    "Listar_Biblioteca", "Listar_Biblioteca_por_status"
 ]
