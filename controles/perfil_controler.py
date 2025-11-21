@@ -13,41 +13,11 @@ from controles import avaliacao_controler
 from dados.database import perfis, salvar_perfis
 from utils.codigos import OK, DADOS_INVALIDOS, CONFLITO, NAO_ENCONTRADO
 
-# delega funções de biblioteca para o módulo especializado
-# Tentamos suportar implementações diferentes sem quebrar a importação.
-try:
-    # implementação onde as funções de avaliação já existem com esses nomes
-    from controles.biblioteca_controler import Adicionar_Avaliacao, Remover_Avaliacao  # type: ignore
-except (ImportError, ModuleNotFoundError):
-    try:
-        # implementação alternativa que usa nomes centrados em "biblioteca"
-        from controles.biblioteca_controler import Adicionar_Jogo, Remover_Jogo  # type: ignore
-        # criamos aliases esperados pelo restante do código
-        Adicionar_Avaliacao = Adicionar_Jogo  # type: ignore
-        Remover_Avaliacao = Remover_Jogo  # type: ignore
-    except (ImportError, ModuleNotFoundError):
-        # fallback: stubs que levantam erro claro apenas quando chamados
-        def _biblioteca_missing_stub(*args, **kwargs):
-            raise ModuleNotFoundError(
-                "Módulo 'controles.biblioteca_controler' não exporta funções de avaliação/biblioteca esperadas. "
-                "Crie 'Adicionar_Avaliacao'/'Remover_Avaliacao' ou 'Adicionar_Jogo'/'Remover_Jogo'."
-            )
-        Adicionar_Avaliacao = _biblioteca_missing_stub  # type: ignore
-        Remover_Avaliacao = _biblioteca_missing_stub  # type: ignore
-
-# Se houver um módulo de avaliações separado, importe suas funções (opcional).
-try:
-    from controles.avaliacao_controler import Avaliar_Jogo, Remover_Avaliacao as Remover_Avaliacao_de_avaliacao  # type: ignore
-except (ImportError, ModuleNotFoundError):
-    # não é obrigatório — continuamos funcionando com as funções da biblioteca
-    Avaliar_Jogo = None  # type: ignore
-    Remover_Avaliacao_de_avaliacao = None  # type: ignore
-
 __all__ = [
     "Criar_Perfil", "Listar_Perfil", "Busca_Perfil", "Busca_Perfil_por_nome",
     "Atualizar_Dados", "Atualizar_Perfil", "Desativar_Conta", "Remover_Perfil",
-    "Avaliar_Jogo", "Remover_Avaliacao", "Seguir_Perfil", "Parar_de_Seguir",
-    "Listar_Seguidores", "Listar_Seguindo"
+    "Adicionar_Avaliacao", "Avaliar_Jogo", "Remover_Avaliacao", "Seguir_Perfil",
+    "Parar_de_Seguir", "Listar_Seguidores", "Listar_Seguindo"
 ]
 
 
@@ -262,8 +232,10 @@ def Avaliar_Jogo(id_perfil: int, id_jogo: int, nota: float, opiniao: Optional[st
     """Wrapper público que delega para controles.avaliacao_controler.Avaliar_Jogo."""
     return avaliacao_controler.Avaliar_Jogo(id_perfil, id_jogo, nota, opiniao)
 
+def Adicionar_Avaliacao(id_perfil: int, id_jogo: int, nota: float, opiniao: Optional[str] = "") -> Tuple[int, Optional[Dict[str, Any]]]:
+    """Compatibilidade com testes/antigo código — delega para Avaliar_Jogo."""
+    return Avaliar_Jogo(id_perfil, id_jogo, nota, opiniao)
+
 def Remover_Avaliacao(id_perfil: int, id_jogo: int) -> Tuple[int, Optional[None]]:
-    """
-    Wrapper usado pelos testes: delega para avaliacao_controler.Remover_Avaliacao.
-    """
+    """Wrapper usado pelos testes: delega para avaliacao_controler.Remover_Avaliacao."""
     return avaliacao_controler.Remover_Avaliacao(id_perfil, id_jogo)

@@ -1,40 +1,45 @@
 from typing import Tuple, Optional, List, Dict, Any
 
-
-try:
-    from controles.biblioteca_controler import (
-        Favoritar_Jogo as _bib_favoritar,
-        Desfavoritar_Jogo as _bib_desfavoritar,
-        Listar_Favoritos as _bib_listar
-    )
-except (ImportError, ModuleNotFoundError):
-    # stubs claros para sinalizar erro em tempo de execução caso o módulo falte
-    def _missing(*args, **kwargs):
-        raise ModuleNotFoundError(
-            "Módulo 'controles.biblioteca_controler' não disponível. "
-            "Implemente Favoritar_Jogo/Desfavoritar_Jogo/Listar_Favoritos ou adicione este módulo."
-        )
-    _bib_favoritar = _missing  # type: ignore
-    _bib_desfavoritar = _missing  # type: ignore
-    _bib_listar = _missing  # type: ignore
+from dados.database import perfis, salvar_perfis
+from utils.codigos import OK, NAO_ENCONTRADO, CONFLITO
+from controles import jogo_controler
 
 __all__ = ["Favoritar_Jogo", "Desfavoritar_Jogo", "Listar_Favoritos"]
 
+def _encontrar_perfil(id_perfil: int) -> Optional[Dict[str, Any]]:
+    return next((p for p in perfis if p.get("id") == id_perfil or p.get("ID_perfil") == id_perfil), None)
+
 def Favoritar_Jogo(id_perfil: int, id_jogo: int) -> Tuple[int, Optional[Dict[str, Any]]]:
-    """
-    Favorita um jogo para o perfil. Delega para controles.biblioteca_controler.Favoritar_Jogo.
-    Retorna (codigo, perfil) compatível com o padrão do projeto.
-    """
-    return _bib_favoritar(id_perfil, id_jogo)
+    perfil = _encontrar_perfil(id_perfil)
+    if perfil is None:
+        return NAO_ENCONTRADO, None
+
+    # valida jogo existe
+    c, jogo = jogo_controler.Busca_Jogo(id_jogo)
+    if c != OK or jogo is None:
+        return NAO_ENCONTRADO, None
+
+    favs = perfil.setdefault("favoritos", [])
+    if id_jogo in favs:
+        return CONFLITO, None
+    favs.append(id_jogo)
+    salvar_perfis()
+    return OK, perfil
 
 def Desfavoritar_Jogo(id_perfil: int, id_jogo: int) -> Tuple[int, Optional[None]]:
-    """
-    Remove um jogo dos favoritos do perfil. Delega para controles.biblioteca_controler.Desfavoritar_Jogo.
-    """
-    return _bib_desfavoritar(id_perfil, id_jogo)
+    perfil = _encontrar_perfil(id_perfil)
+    if perfil is None:
+        return NAO_ENCONTRADO, None
+
+    favs = perfil.get("favoritos", [])
+    if id_jogo not in favs:
+        return NAO_ENCONTRADO, None
+    favs.remove(id_jogo)
+    salvar_perfis()
+    return OK, None
 
 def Listar_Favoritos(id_perfil: int) -> Tuple[int, List[int]]:
-    """
-    Retorna a lista de ids de jogos favoritados pelo perfil.
-    """
-    return _bib_listar(id_perfil)
+    perfil = _encontrar_perfil(id_perfil)
+    if perfil is None:
+        return NAO_ENCONTRADO, []
+    return OK, perfil.get("favoritos", [])
