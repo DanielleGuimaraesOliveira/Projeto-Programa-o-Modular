@@ -90,6 +90,16 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
                 print("❌ Nenhum perfil ativo.")
                 continue
             try:
+                codigo, lista = perfil_controler.Listar_Perfil()
+
+                if codigo == OK:
+                    print("\nPerfis encontrados:")
+                    for p in lista:
+                        nome = p.get("nome_usuario") or p.get("nome") or "(sem nome)"
+                        print(f"{p['id']} - {nome}")
+                else:
+                    print("❌ Erro ao listar perfis.")
+
                 id_alvo = int(_input_strip("ID do perfil a seguir: "))
             except ValueError:
                 print("⚠️  ID inválido.")
