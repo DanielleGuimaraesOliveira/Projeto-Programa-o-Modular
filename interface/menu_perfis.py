@@ -40,7 +40,7 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
             try:
                 idp = int(_input_strip("ID do perfil: "))
             except ValueError:
-                print("⚠️  ID inválido.")
+                print("⚠️ ID inválido!")
                 continue
             codigo, p = perfil_controler.Busca_Perfil(idp)
             if codigo == OK and p:
@@ -48,6 +48,9 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
                 print(f"Nome: {p.get('nome_usuario', p.get('nome',''))}")
                 print(f"Descrição: {p.get('descricao','')}")
                 print(f"Seguidores: {len(p.get('seguidores',[]))} | Seguindo: {len(p.get('seguindo',[]))}")
+                print(f"🎮 Jogando: {p.get('jogando', 0)}")
+                print(f"✅ Jogados: {p.get('jogados', 0)}")
+                print(f"🏆 Platinados: {p.get('platinados', 0)}")
             else:
                 print("❌ Perfil não encontrado.")
         elif opcao == "3":

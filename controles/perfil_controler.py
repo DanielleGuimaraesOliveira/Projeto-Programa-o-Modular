@@ -1,81 +1,62 @@
 # controles/perfil_controler.py
-"""Lógica de perfis: criação, busca, atualização e avaliações.
-
-Agora o perfil contém os campos esperados pelo diagrama:
-- nome_usuario, descricao, avatar, seguidores, seguindo,
-  jogando, jogados, platinados, id (ID_perfil como alias).
-Mantém compatibilidade com chaves antigas ('nome') e com as funções
-anteriores (Atualizar_Perfil, Remover_Perfil) como aliases.
+"""
+Lógica de perfis: criação, busca, atualização e desativação.
+Gerencia dados do usuário e garante integridade referencial.
 """
 from typing import Tuple, Optional, Dict, Any, List
+# Importa módulos relacionados para limpeza e delegação
 from controles import avaliacao_controler
 from controles import seguidores_controler as seguidores_ctrl
 
-from dados.database import perfis, salvar_perfis
+# Importa avaliacoes/salvar para limpeza direta ao deletar perfil
+from dados.database import perfis, salvar_perfis, avaliacoes, salvar_avaliacoes
 from utils.codigos import OK, DADOS_INVALIDOS, CONFLITO, NAO_ENCONTRADO
 
 __all__ = [
     "Criar_Perfil", "Listar_Perfil", "Busca_Perfil", "Busca_Perfil_por_nome",
     "Atualizar_Dados", "Atualizar_Perfil", "Desativar_Conta", "Remover_Perfil",
-    "Adicionar_Avaliacao", "Avaliar_Jogo", "Remover_Avaliacao", "Seguir_Perfil",
-    "Parar_de_Seguir", "Listar_Seguidores", "Listar_Seguindo"
+    "Adicionar_Avaliacao", "Avaliar_Jogo", "Remover_Avaliacao", 
+    "Seguir_Perfil", "Parar_de_Seguir", "Listar_Seguidores", "Listar_Seguindo"
 ]
 
-
 def _proximo_id(perfis_list: List[Dict[str, Any]]) -> int:
-    """Retorna o próximo id disponível (seguro mesmo com lista vazia)."""
     return max((p.get("id", 0) for p in perfis_list), default=0) + 1
 
-
 def _encontrar_por_id(id_perfil: int) -> Optional[Dict[str, Any]]:
-    """Retorna o perfil com o id informado ou None se não existir."""
     return next((p for p in perfis if p.get("id") == id_perfil), None)
 
-
 def _nome_do_perfil(perfil: Dict[str, Any]) -> str:
-    """Retorna o nome efetivo do perfil (compatibilidade: nome_usuario ou nome)."""
     return (perfil.get("nome_usuario") or perfil.get("nome") or "").strip()
 
-
 def _nome_ja_existe(nome: str, ignorar_id: Optional[int] = None) -> bool:
-    """Verifica existência de nome (case-insensitive). Pode ignorar um id."""
     nome_norm = nome.strip().lower()
     return any(
         p.get("id") != ignorar_id and _nome_do_perfil(p).lower() == nome_norm
         for p in perfis
     )
 
-
 def _validar_nome(nome: Optional[str]) -> bool:
-    """Valida presença e conteúdo do nome."""
     return bool(nome and nome.strip())
 
-
 def _criar_estrutura_perfil(id_val: int, nome: str, descricao: Optional[str], avatar: Optional[str]) -> Dict[str, Any]:
-    """Cria a estrutura de dicionário do perfil com todos os campos do diagrama."""
     nome_clean = nome.strip()
-    descricao_clean = (descricao or "").strip()
-    avatar_clean = (avatar or "").strip()
-    perfil = {
+    return {
         "id": id_val,
-        "ID_perfil": id_val,              # alias explicito
+        "ID_perfil": id_val,
         "nome_usuario": nome_clean,
-        "nome": nome_clean,               # compatibilidade com código legado
-        "descricao": descricao_clean,
-        "avatar": avatar_clean,
-        "seguidores": [],                 # lista de ids de perfis que seguem
-        "seguindo": [],                   # lista de ids de perfis seguidos
+        "nome": nome_clean,
+        "descricao": (descricao or "").strip(),
+        "avatar": (avatar or "").strip(),
+        "seguidores": [],
+        "seguindo": [],
         "jogando": 0,
         "jogados": 0,
         "platinados": 0,
         "favoritos": [],
         "biblioteca": []
     }
-    return perfil
-
 
 def Criar_Perfil(nome: str, descricao: Optional[str] = None, avatar: Optional[str] = None) -> Tuple[int, Optional[Dict[str, Any]]]:
-    """Cria um novo perfil caso o nome seja válido e não exista."""
     if not _validar_nome(nome):
         return DADOS_INVALIDOS, None
 
@@ -88,37 +69,25 @@ def Criar_Perfil(nome: str, descricao: Optional[str] = None, avatar: Optional[st
     salvar_perfis()
     return OK, novo_perfil
 
-
 def Listar_Perfil() -> Tuple[int, List[Dict[str, Any]]]:
-    """Retorna todos os perfis cadastrados."""
     return OK, perfis
 
-
 def Busca_Perfil(id_perfil: int) -> Tuple[int, Optional[Dict[str, Any]]]:
-    """Busca um perfil pelo ID (id ou ID_perfil)."""
     perfil = _encontrar_por_id(id_perfil)
     if perfil is None:
         return NAO_ENCONTRADO, None
     return OK, perfil
 
-
 def Busca_Perfil_por_nome(nome: str) -> Tuple[int, Optional[Dict[str, Any]]]:
-    """Busca um perfil pelo nome (case-insensitive)."""
     if not _validar_nome(nome):
         return DADOS_INVALIDOS, None
-
     nome_norm = nome.strip().lower()
     perfil = next((p for p in perfis if _nome_do_perfil(p).lower() == nome_norm), None)
     if perfil is None:
         return NAO_ENCONTRADO, None
     return OK, perfil
 
-
 def Atualizar_Dados(id_perfil: int, nome: Optional[str] = None, descricao: Optional[str] = None, avatar: Optional[str] = None) -> Tuple[int, Optional[Dict[str, Any]]]:
-    """Atualiza os campos fornecidos do perfil e salva as mudanças.
-    - nome: se fornecido, valida não vazio e sem conflito com outro perfil.
-    - descricao, avatar: se fornecidos, substituem/limpam o valor atual.
-    """
     perfil = _encontrar_por_id(id_perfil)
     if perfil is None:
         return NAO_ENCONTRADO, None
@@ -129,7 +98,7 @@ def Atualizar_Dados(id_perfil: int, nome: Optional[str] = None, descricao: Optio
         if _nome_ja_existe(nome, ignorar_id=id_perfil):
             return CONFLITO, None
         perfil["nome_usuario"] = nome.strip()
-        perfil["nome"] = nome.strip()  # compatibilidade
+        perfil["nome"] = nome.strip()
 
     if descricao is not None:
         perfil["descricao"] = descricao.strip()
@@ -140,45 +109,53 @@ def Atualizar_Dados(id_perfil: int, nome: Optional[str] = None, descricao: Optio
     salvar_perfis()
     return OK, perfil
 
-
 def Atualizar_Perfil(id_perfil: int, nome: Optional[str] = None, descricao: Optional[str] = None, avatar: Optional[str] = None) -> Tuple[int, Optional[Dict[str, Any]]]:
-    """Atualiza os dados do perfil."""
     return Atualizar_Dados(id_perfil, nome, descricao, avatar)
 
-
 def Desativar_Conta(id_perfil: int) -> Tuple[int, Optional[None]]:
-    """Desativa/Remove um perfil e limpa referências em outros perfis."""
+    """Desativa perfil, remove referências de seguidores e AVALIAÇÕES feitas pelo usuário."""
     perfil = _encontrar_por_id(id_perfil)
     if perfil is None:
         return NAO_ENCONTRADO, None
 
-    # remover referências em outros perfis (seguidores / seguindo)
-    for p in list(perfis):  # itera sobre cópia para segurança
+    # 1. Limpar seguidores/seguindo em outros perfis
+    for p in perfis:
+        alterado = False
         if p.get("id") == id_perfil:
             continue
         if "seguindo" in p and id_perfil in p["seguindo"]:
             try:
                 p["seguindo"].remove(id_perfil)
+                alterado = True
             except ValueError:
                 pass
         if "seguidores" in p and id_perfil in p["seguidores"]:
             try:
                 p["seguidores"].remove(id_perfil)
+                alterado = True
             except ValueError:
                 pass
+    
+    # 2. FIX: Remover avaliações feitas por este perfil
+    # Isso garante que a média dos jogos seja recalculada sem o "fantasma"
+    global avaliacoes
+    # Identifica IDs das avaliações do usuário para removê-las
+    avaliacoes_do_usuario = [a for a in avaliacoes if a.get("id_perfil") == id_perfil]
+    
+    # Remove as avaliações da lista global
+    for av in avaliacoes_do_usuario:
+        # Usa o controller de avaliação para garantir recálculo da nota do jogo
+        avaliacao_controler.Remover_avaliacao(av["id"])
 
-    # agora remove o perfil da lista
+    # 3. Remover o perfil
     perfis.remove(perfil)
     salvar_perfis()
     return OK, None
 
-
-
 def Remover_Perfil(id_perfil: int) -> Tuple[int, Optional[None]]:
-
     return Desativar_Conta(id_perfil)
 
-
+# --- WRAPPERS DE SEGUIDORES (Delegação direta) ---
 def Seguir_Perfil(id_seguidor: int, id_alvo: int):
     return seguidores_ctrl.Seguir_Perfil(id_seguidor, id_alvo)
 
@@ -191,15 +168,27 @@ def Listar_Seguidores(id_perfil: int):
 def Listar_Seguindo(id_perfil: int):
     return seguidores_ctrl.Listar_Seguindo(id_perfil)
 
-
+# --- WRAPPERS DE AVALIAÇÃO (Correção de Assinatura) ---
 def Avaliar_Jogo(id_perfil: int, id_jogo: int, nota: float, opiniao: Optional[str] = "") -> Tuple[int, Optional[Dict[str, Any]]]:
-    """Wrapper público que delega para controles.avaliacao_controler.Avaliar_Jogo."""
-    return avaliacao_controler.Avaliar_Jogo(id_perfil, id_jogo, nota, opiniao)
+    """
+    Wrapper corrigido.
+    Modulo Avaliação espera: Avaliar_jogo(id_jogo, score, descricao, id_perfil)
+    """
+    return avaliacao_controler.Avaliar_jogo(id_jogo, nota, opiniao, id_perfil)
 
 def Adicionar_Avaliacao(id_perfil: int, id_jogo: int, nota: float, opiniao: Optional[str] = "") -> Tuple[int, Optional[Dict[str, Any]]]:
-    """Compatibilidade com testes/antigo código — delega para Avaliar_Jogo."""
     return Avaliar_Jogo(id_perfil, id_jogo, nota, opiniao)
 
 def Remover_Avaliacao(id_perfil: int, id_jogo: int) -> Tuple[int, Optional[None]]:
-    """Wrapper usado pelos testes: delega para avaliacao_controler.Remover_Avaliacao."""
-    return avaliacao_controler.Remover_Avaliacao(id_perfil, id_jogo)
+    """
+    Wrapper corrigido.
+    O módulo Avaliação remove por ID da avaliação. 
+    Aqui precisamos descobrir o ID da avaliação baseada no par (perfil, jogo).
+    """
+    # Busca a avaliação correspondente na lista global
+    avaliacao = next((a for a in avaliacoes if a.get("id_perfil") == id_perfil and a.get("id_jogo") == id_jogo), None)
+    
+    if avaliacao:
+        return avaliacao_controler.Remover_avaliacao(avaliacao["id"])
+    else:
+        return NAO_ENCONTRADO, None

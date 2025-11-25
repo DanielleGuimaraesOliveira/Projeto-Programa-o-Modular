@@ -12,5 +12,12 @@
     "genero": "Puzzle",
     "descricao": "",
     "nota_geral": 10.0
+  },
+  {
+    "id": 3,
+    "titulo": "Mario Kart",
+    "descricao": "",
+    "genero": "Corrida",
+    "nota_geral": 10.0
   }
 ]

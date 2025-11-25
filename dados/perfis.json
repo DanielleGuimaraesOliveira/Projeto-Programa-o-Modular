@@ -6,12 +6,51 @@
     "nome": "x1",
     "descricao": "",
     "avatar": "",
-    "seguidores": [],
+    "seguidores": [
+      2
+    ],
     "seguindo": [],
     "jogando": 0,
     "jogados": 0,
     "platinados": 0,
     "favoritos": [],
     "biblioteca": []
+  },
+  {
+    "id": 2,
+    "ID_perfil": 2,
+    "nome_usuario": "walter.kerr",
+    "nome": "walter.kerr",
+    "descricao": "Botafoguense nato",
+    "avatar": "Avatar",
+    "seguidores": [],
+    "seguindo": [
+      1
+    ],
+    "jogando": 0,
+    "jogados": 0,
+    "platinados": 0,
+    "favoritos": [],
+    "biblioteca": []
+  },
+  {
+    "id": 3,
+    "ID_perfil": 3,
+    "nome_usuario": "Ash",
+    "nome": "Ash",
+    "descricao": "Amo Pokemon",
+    "avatar": "",
+    "seguidores": [],
+    "seguindo": [],
+    "jogando": 0,
+    "jogados": 0,
+    "platinados": 1,
+    "favoritos": [],
+    "biblioteca": [
+      {
+        "id_jogo": 3,
+        "status": "platinado"
+      }
+    ]
   }
 ]
