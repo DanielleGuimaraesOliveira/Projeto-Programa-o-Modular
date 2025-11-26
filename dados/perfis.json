@@ -9,7 +9,9 @@
     "seguidores": [
       2
     ],
-    "seguindo": [],
+    "seguindo": [
+      2
+    ],
     "jogando": 0,
     "jogados": 0,
     "platinados": 0,
@@ -23,7 +25,9 @@
     "nome": "walter.kerr",
     "descricao": "Botafoguense nato",
     "avatar": "Avatar",
-    "seguidores": [],
+    "seguidores": [
+      1
+    ],
     "seguindo": [
       1
     ],
@@ -52,5 +56,21 @@
         "status": "platinado"
       }
     ]
+  },
+  {
+    "id": 4,
+    "ID_perfil": 4,
+    "nome_usuario": "dani",
+    "nome": "dani",
+    "descricao": "",
+    "avatar": "",
+    "seguidores": [],
+    "seguindo": [],
+    "jogando": 0,
+    "jogados": 0,
+    "platinados": 0,
+    "favoritos": [],
+    "biblioteca": [],
+    "avaliacoes": []
   }
 ]
