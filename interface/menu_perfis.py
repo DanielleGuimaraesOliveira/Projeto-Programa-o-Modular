@@ -1,19 +1,70 @@
+"""
+Menu de Perfis (interface CLI).
+
+Objetivo:
+- Fornecer interação em linha de comando para operações sobre perfis:
+  listar, visualizar, atualizar, desativar, seguir/parar de seguir e navegar
+  nas listas de seguidores/seguidos.
+
+Descrição:
+- Valida entradas do usuário, chama as funções do controller de perfis e
+  traduz códigos de retorno em mensagens legíveis.
+- Não realiza persistência direta; delega operações ao módulo controles.perfil_controler.
+- Projetado para ser usado a partir do menu principal; recebe o perfil ativo
+  (opcional) e retorna um booleano indicando se o usuário permaneceu logado.
+
+Dependências:
+- controles.perfil_controler
+- utils.codigos (OK, CONFLITO, DADOS_INVALIDOS, NAO_ENCONTRADO)
+"""
 from typing import Optional, Dict
 from controles import perfil_controler
 from utils.codigos import OK, CONFLITO, DADOS_INVALIDOS, NAO_ENCONTRADO
 
 def _input_strip(prompt: str) -> str:
+    """
+    Objetivo:
+    - Ler entrada do usuário e remover espaços nas extremidades.
+
+    Parâmetros:
+    - prompt (str): texto exibido ao usuário.
+
+    Retorno:
+    - str: texto digitado com .strip().
+    """
     return input(prompt).strip()
 
 def _print_header(titulo: str) -> None:
+    """
+    Objetivo:
+    - Exibir um cabeçalho simples no CLI.
+
+    Parâmetros:
+    - titulo (str): texto do cabeçalho.
+    """
     print(f"\n=== {titulo} ===")
 
 def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
     """
-    Exibe menu de perfis.
-    Retorna:
-      - True  -> usuário permaneceu logado / voltou ao menu principal normalmente.
-      - False -> conta desativada / usuário deslogado (o caller deve chamar o menu inicial).
+    Objetivo:
+    - Exibir o menu de perfis e tratar ações do usuário.
+
+    Descrição:
+    - Permite listar perfis, ver perfil por ID, atualizar o perfil ativo,
+      desativar conta, seguir/parar de seguir outros perfis, e listar seguidores/seguindo.
+    - Mantém um loop até o usuário optar por voltar.
+    - Retorna True se o usuário permanecer logado/voltou normalmente,
+      ou False se a conta foi desativada (o caller deve tratar logout).
+
+    Parâmetros:
+    - perfil_ativo (Optional[Dict]): dicionário do perfil atualmente logado (pode ser None).
+
+    Assertivas / Invariantes:
+    - Pré: quando fornecido, `perfil_ativo` deve conter a chave 'id'.
+    - Pós: todas as alterações são delegadas ao perfil_controler; mensagens são exibidas ao usuário.
+
+    Retorno:
+    - bool: True (manter sessão) ou False (conta desativada / deslogado).
     """
     while True:
         _print_header("PERFIS")
@@ -36,6 +87,7 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
                     print(f"  {p['id']} - {nome}")
             else:
                 print("❌ Erro ao listar perfis.")
+
         elif opcao == "2":
             try:
                 idp = int(_input_strip("ID do perfil: "))
@@ -53,6 +105,7 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
                 print(f"🏆 Platinados: {p.get('platinados', 0)}")
             else:
                 print("❌ Perfil não encontrado.")
+
         elif opcao == "3":
             if not perfil_ativo:
                 print("❌ Nenhum perfil ativo.")
@@ -73,6 +126,7 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
                 print("❌ Nome já em uso por outro perfil.")
             else:
                 print("❌ Erro ao atualizar.")
+
         elif opcao == "4":
             if not perfil_ativo:
                 print("❌ Nenhum perfil ativo.")
@@ -82,19 +136,18 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
                 codigo, _ = perfil_controler.Desativar_Conta(perfil_ativo['id'])
                 if codigo == OK:
                     print("✅ Conta desativada.")
-                    # sinaliza ao chamador que o perfil foi desativado / deslogado
                     return False
                 else:
                     print("❌ Erro ao desativar conta.")
             else:
                 print("Ação cancelada.")
+
         elif opcao == "5":
             if not perfil_ativo:
                 print("❌ Nenhum perfil ativo.")
                 continue
             try:
                 codigo, lista = perfil_controler.Listar_Perfil()
-
                 if codigo == OK:
                     print("\nPerfis encontrados:")
                     for p in lista:
@@ -102,7 +155,6 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
                         print(f"{p['id']} - {nome}")
                 else:
                     print("❌ Erro ao listar perfis.")
-
                 id_alvo = int(_input_strip("ID do perfil a seguir: "))
             except ValueError:
                 print("⚠️  ID inválido.")
@@ -118,6 +170,7 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
                 print("❌ Ação inválida.")
             else:
                 print("❌ Erro ao seguir.")
+
         elif opcao == "6":
             if not perfil_ativo:
                 print("❌ Nenhum perfil ativo.")
@@ -134,13 +187,13 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
                 print("❌ Relação não encontrada (ou perfil não existe).")
             else:
                 print("❌ Erro ao processar.")
+
         elif opcao == "7":
             if not perfil_ativo:
                 print("❌ Nenhum perfil ativo.")
                 continue
             codigo, lista = perfil_controler.Listar_Seguidores(perfil_ativo['id'])
             if codigo == OK:
-                # resolve ids para nomes legíveis
                 nomes = []
                 for pid in lista:
                     c, p = perfil_controler.Busca_Perfil(pid)
@@ -151,13 +204,13 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
                 print("Seguidores:", ', '.join(nomes) if nomes else "(nenhum)")
             else:
                 print("❌ Erro ao obter seguidores.")
+
         elif opcao == "8":
             if not perfil_ativo:
                 print("❌ Nenhum perfil ativo.")
                 continue
             codigo, lista = perfil_controler.Listar_Seguindo(perfil_ativo['id'])
             if codigo == OK:
-                # resolve ids para nomes legíveis
                 nomes = []
                 for pid in lista:
                     c, p = perfil_controler.Busca_Perfil(pid)
@@ -168,8 +221,9 @@ def exibir_menu_perfis(perfil_ativo: Optional[Dict]) -> bool:
                 print("Seguindo:", ', '.join(nomes) if nomes else "(nenhum)")
             else:
                 print("❌ Erro ao obter lista de seguindo.")
+
         elif opcao == "0":
-            # volta ao menu principal mantendo o perfil ativo
             return True
+
         else:
             print("❌ Opção inválida.")

@@ -1,4 +1,20 @@
-# interface/menu_biblioteca.py
+"""
+Interface de menu da Biblioteca.
+
+Objetivo:
+- Fornecer interação em linha de comando para gerenciar a biblioteca pessoal do perfil:
+  listar itens, adicionar, atualizar status, remover, filtrar por status e gerenciar favoritos.
+
+Descrição:
+- Valida entradas do usuário, chama os controllers apropriados (biblioteca, jogo, favoritos)
+  e traduz os códigos de retorno em mensagens legíveis.
+- Não realiza persistência direta; delega todas operações de leitura/escrita aos controllers.
+- Projetado para ser usado pelo fluxo principal (menu do usuário) com um dicionário `perfil`
+  representando o usuário ativo.
+
+Nota:
+- Funções assumem que `perfil` (quando fornecido) contém a chave 'id'.
+"""
 from typing import Optional, Dict
 from controles import biblioteca_controler
 from controles import jogo_controler
@@ -6,9 +22,47 @@ from controles import favoritos_controler
 from utils.codigos import OK, DADOS_INVALIDOS, NAO_ENCONTRADO, CONFLITO
 
 def _input_strip(prompt: str) -> str:
+    """
+    Objetivo:
+    - Ler entrada do usuário e retornar a string sem espaços nas extremidades.
+
+    Parâmetros:
+    - prompt (str): texto a ser exibido ao usuário.
+
+    Retorno:
+    - str: entrada do usuário com .strip().
+    """
     return input(prompt).strip()
 
 def exibir_menu_biblioteca(perfil: Optional[Dict]):
+    """
+    Objetivo:
+    - Exibir o menu de biblioteca para o perfil ativo e tratar as ações escolhidas.
+
+    Descrição:
+    - Permite:
+      1) Listar a biblioteca do perfil;
+      2) Adicionar um jogo à biblioteca (status obrigatório);
+      3) Atualizar o status de um jogo já presente;
+      4) Remover jogo da biblioteca;
+      5) Filtrar listagem por status;
+      6) Favoritar um jogo;
+      7) Listar favoritos.
+    - Para cada operação, valida parâmetros (IDs, status) e mostra mensagens
+      apropriadas conforme o código retornado pelos controllers.
+
+    Parâmetros:
+    - perfil (Optional[Dict]): dicionário do perfil ativo (deve conter 'id'). Se None,
+      a função informa que não há perfil ativo e retorna.
+
+    Assertivas / Invariantes:
+    - Pré: se `perfil` é fornecido, contém chave 'id' válida.
+    - Pós: alterações delegadas aos controllers; mensagens exibidas ao usuário.
+      Persistência é responsabilidade dos controllers/TADs subjacentes.
+
+    Retorno:
+    - None (efeito colateral: interage com usuário e altera dados via controllers).
+    """
     if not perfil:
         print("❌ Nenhum perfil ativo.")
         return
@@ -31,7 +85,6 @@ def exibir_menu_biblioteca(perfil: Optional[Dict]):
                     print("  (biblioteca vazia)")
                 else:
                     for i, e in enumerate(lista, start=1):
-                        # FIX: Padronizado para 'id_jogo'
                         id_jogo = e.get("id_jogo")
                         cid, jogo = jogo_controler.Busca_Jogo(id_jogo)
                         titulo = jogo.get("titulo") if cid == OK and jogo else f"Jogo #{id_jogo}"
@@ -97,7 +150,6 @@ def exibir_menu_biblioteca(perfil: Optional[Dict]):
                     print("  (nenhum item com esse status)")
                 else:
                     for e in lista:
-                        # FIX: Padronizado para 'id_jogo'
                         id_jogo = e.get("id_jogo")
                         cid, jogo = jogo_controler.Busca_Jogo(id_jogo)
                         titulo = jogo.get("titulo") if cid == OK and jogo else f"Jogo #{id_jogo}"
