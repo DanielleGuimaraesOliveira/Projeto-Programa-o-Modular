@@ -5,7 +5,9 @@ Gerencia a lista de jogos favoritos de cada perfil.
 """
 from typing import Tuple, Optional, List, Dict, Any
 from utils.codigos import OK, NAO_ENCONTRADO, CONFLITO
-from controles import jogo_controler
+# removido: from controles import jogo_controler
+import json
+import os
 
 __all__ = ["Favoritar_Jogo", "Desfavoritar_Jogo", "Listar_Favoritos"]
 
