@@ -15,9 +15,23 @@ _jogos: Optional[List[Dict[str, Any]]] = None
 _jogos_dirty: bool = False
 
 def _load_jogos() -> None:
+    """
+    Carrega jogos para o TAD interno. Se dados.database expõe `jogos`,
+    usa essa lista (compartilhada). Caso contrário, carrega do arquivo JOGOS_FILE
+    ou inicializa lista vazia.
+    """
     global _jogos
     if _jogos is not None:
         return
+
+    try:
+        import dados.database as db
+        if hasattr(db, "jogos") and isinstance(db.jogos, list):
+            _jogos = db.jogos
+            return
+    except Exception:
+        pass
+
     if os.path.exists(JOGOS_FILE):
         try:
             with open(JOGOS_FILE, "r", encoding="utf-8") as f:

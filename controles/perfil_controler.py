@@ -25,22 +25,23 @@ _perfis_dirty: bool = False
 
 def _load_perfis() -> None:
     """
-    Objetivo:
-    - Carregar a lista de perfis do arquivo JSON para a TAD interna `_perfis`.
-
-    Descrição:
-    - Se `_perfis` já estiver carregado, não faz nada (lazy load).
-    - Em caso de arquivo ausente, inicializa com `default_perfis` ou lista vazia.
-
-    Parâmetros:
-    - nenhum
-
-    Retorno:
-    - None (efeito colateral: popula a variável `_perfis`).
+    Carrega perfis para o TAD interno. Se o módulo dados.database já expõe
+    a lista `perfis`, usa-a (compartilha a mesma lista). Caso contrário,
+    tenta carregar do arquivo PERFIS_FILE ou usar default_perfis.
     """
     global _perfis
     if _perfis is not None:
         return
+
+    try:
+        import dados.database as db
+        if hasattr(db, "perfis") and isinstance(db.perfis, list):
+            _perfis = db.perfis
+            return
+    except Exception:
+        # se algo falhar ao importar db, segue para carregar por arquivo
+        pass
+
     if os.path.exists(PERFIS_FILE):
         try:
             with open(PERFIS_FILE, "r", encoding="utf-8") as f:

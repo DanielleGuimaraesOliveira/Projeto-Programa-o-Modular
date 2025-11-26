@@ -72,5 +72,21 @@
     "favoritos": [],
     "biblioteca": [],
     "avaliacoes": []
+  },
+  {
+    "id": 5,
+    "ID_perfil": 5,
+    "nome_usuario": "s",
+    "nome": "s",
+    "descricao": "",
+    "avatar": "",
+    "seguidores": [],
+    "seguindo": [],
+    "jogando": 0,
+    "jogados": 0,
+    "platinados": 0,
+    "favoritos": [],
+    "biblioteca": [],
+    "avaliacoes": []
   }
 ]
